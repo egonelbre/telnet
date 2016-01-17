@@ -3,7 +3,6 @@ package telnet
 import (
 	"fmt"
 	"io"
-	"log"
 	"strings"
 )
 
@@ -77,13 +76,13 @@ func (r *Conn) run() {
 	for c := range cmds {
 		switch cmd := c.(type) {
 		default:
-			log.Printf("Unexpected type %T\n", cmd)
+			// log.Printf("Unexpected type %T\n", cmd)
 		case string:
-			log.Printf("User action '%s'\n", cmd)
+			// log.Printf("User action '%s'\n", cmd)
 			r.Lines <- cmd
 		case OptionCommand:
-			info := cmd.OptionCode().Info()
-			log.Printf("Command [%v] %v\n", info.Name, cmd)
+			// info := cmd.OptionCode().Info()
+			// log.Printf("Command [%v] %v\n", info.Name, cmd)
 			if r.negotiator != nil {
 				r.negotiator.Handle(cmd)
 			} else {
