@@ -10,7 +10,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/egonelbre/telnet/remote"
+	"github.com/egonelbre/telnet"
 )
 
 func main() {
@@ -32,10 +32,18 @@ func main() {
 	}
 }
 
-const greeting = `# HELLO WORLD #`
+const greeting = `
+
+    #################
+    #               #
+    #  HELLO WORLD  #
+    #               #
+    #################
+
+`
 
 func handleConnection(c net.Conn) {
-	r := remote.New(c)
+	r := telnet.NewConn(c)
 
 	r.Print(greeting)
 	r.Print("What's your nick? ")

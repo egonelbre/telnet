@@ -8,9 +8,6 @@ import (
 	"os"
 
 	"github.com/egonelbre/telnet"
-
-	_ "github.com/egonelbre/telnet/opt/naws"
-	_ "github.com/egonelbre/telnet/opt/ttype"
 )
 
 func main() {
