@@ -7,7 +7,7 @@ import (
 // Implements the NAWS protocol as defined by RFC 1073
 // http://www.ietf.org/rfc/rfc1073.txt
 
-const Code byte = 31
+const Code = telnet.OptionNAWS
 
 type Negotiation struct {
 	ServerAsked bool
@@ -19,8 +19,11 @@ func New() *Negotiation {
 	return &Negotiation{true, -1, -1}
 }
 
-func InitByClient(c telnet.Command) telnet.Negotiator {
-	return &Negotiation{false, -1, -1}
+func init() {
+	telnet.Register(Code,
+		func(c telnet.Command) telnet.Negotiator {
+			return &Negotiation{false, -1, -1}
+		})
 }
 
 func (n *Negotiation) Request() telnet.Command {

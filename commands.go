@@ -1,14 +1,13 @@
 package telnet
 
-type Negotiator interface {
-	Handle(c Command) (response Command)
-}
-
 type (
+	// Command represents any element that can be serialized/unserialized
+	// by telnet protocol
 	Command interface{}
-	// commands that have are targeted to a telnet option
+	// OptionCommand
 	OptionCommand interface {
-		OptionCode() byte
+		Command
+		OptionCode() Option
 	}
 
 	Break            struct{}
@@ -17,13 +16,13 @@ type (
 	AreYouThere      struct{}
 	GoAhead          struct{}
 
-	Will struct{ Option byte }
-	Wont struct{ Option byte }
-	Do   struct{ Option byte }
-	Dont struct{ Option byte }
+	Will struct{ Option Option }
+	Wont struct{ Option Option }
+	Do   struct{ Option Option }
+	Dont struct{ Option Option }
 
 	SubNegotiation struct {
-		Option byte
+		Option Option
 		Data   []byte
 	}
 
@@ -31,8 +30,8 @@ type (
 	Transaction []Command
 )
 
-func (c Will) OptionCode() byte           { return c.Option }
-func (c Wont) OptionCode() byte           { return c.Option }
-func (c Do) OptionCode() byte             { return c.Option }
-func (c Dont) OptionCode() byte           { return c.Option }
-func (c SubNegotiation) OptionCode() byte { return c.Option }
+func (c Will) OptionCode() Option           { return c.Option }
+func (c Wont) OptionCode() Option           { return c.Option }
+func (c Do) OptionCode() Option             { return c.Option }
+func (c Dont) OptionCode() Option           { return c.Option }
+func (c SubNegotiation) OptionCode() Option { return c.Option }

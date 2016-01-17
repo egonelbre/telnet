@@ -1,34 +1,36 @@
-package remote
+package telnet
 
 import (
 	"fmt"
 	"io"
 	"log"
 	"strings"
-
-	"github.com/egonelbre/telnet"
-	"github.com/egonelbre/telnet/negotiator"
-	"github.com/egonelbre/telnet/opt"
 )
 
 const maxLine = 4096
 
+// Negotiator handles any negotiations to the telnet protocol
+type Negotiator interface {
+	Handle(c Command) (response Command)
+}
+
+// Conn handles reading/writing telnet protocol and can handle extensions
 type Conn struct {
 	conn       io.ReadWriter
 	Lines      chan string
-	send       chan telnet.Command
-	negotiator telnet.Negotiator
+	send       chan Command
+	negotiator Negotiator
 }
 
-func New(input io.ReadWriter) *Conn {
-	return NewWithNegotiator(input, negotiator.NewDefault())
+func NewConn(input io.ReadWriter) *Conn {
+	return NewConnWithNegotiator(input, NewExtensions(RegisteredNegotiators()))
 }
 
-func NewWithNegotiator(input io.ReadWriter, n telnet.Negotiator) *Conn {
+func NewConnWithNegotiator(input io.ReadWriter, n Negotiator) *Conn {
 	r := &Conn{
 		conn:       input,
 		Lines:      make(chan string),
-		send:       make(chan telnet.Command),
+		send:       make(chan Command),
 		negotiator: n,
 	}
 	go r.run()
@@ -39,11 +41,11 @@ func (r *Conn) formatLine(line string) string {
 	return strings.Replace(line, "\n", "\r\n", -1)
 }
 
-func (r *Conn) prepare(c telnet.Command) telnet.Command {
+func (r *Conn) prepare(c Command) Command {
 	switch cmd := c.(type) {
 	case string:
 		return r.formatLine(cmd)
-	case telnet.Transaction:
+	case Transaction:
 		for i, c := range cmd {
 			cmd[i] = r.prepare(c)
 		}
@@ -53,7 +55,7 @@ func (r *Conn) prepare(c telnet.Command) telnet.Command {
 	}
 }
 
-func (r *Conn) Send(c telnet.Command) {
+func (r *Conn) Send(c Command) {
 	r.send <- r.prepare(c)
 }
 
@@ -68,9 +70,9 @@ func (r *Conn) Printf(format string, a ...interface{}) {
 func (r *Conn) run() {
 	defer r.Terminate()
 
-	cmds := make(chan telnet.Command)
-	go telnet.Unserialize(r.conn, cmds)
-	go telnet.Serialize(r.send, r.conn)
+	cmds := make(chan Command)
+	go Unserialize(r.conn, cmds)
+	go Serialize(r.send, r.conn)
 
 	for c := range cmds {
 		switch cmd := c.(type) {
@@ -79,13 +81,13 @@ func (r *Conn) run() {
 		case string:
 			log.Printf("User action '%s'\n", cmd)
 			r.Lines <- cmd
-		case telnet.OptionCommand:
-			info := opt.ByCode(cmd.OptionCode())
+		case OptionCommand:
+			info := cmd.OptionCode().Info()
 			log.Printf("Command [%v] %v\n", info.Name, cmd)
 			if r.negotiator != nil {
 				r.negotiator.Handle(cmd)
 			} else {
-				r.Send(telnet.Wont{cmd.OptionCode()})
+				r.Send(Wont{cmd.OptionCode()})
 			}
 		}
 	}

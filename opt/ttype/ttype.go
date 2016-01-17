@@ -6,9 +6,8 @@ import (
 
 // Implements the TTYPE protocol as defined by RFC 1091
 // http://www.ietf.org/rfc/rfc1091.txt
-//
 
-const Code byte = 24
+const Code = telnet.OptionTTYPE
 
 type Negotiation struct {
 	Type string
@@ -18,8 +17,9 @@ func New() *Negotiation {
 	return &Negotiation{""}
 }
 
-func InitByClient(c telnet.Command) telnet.Negotiator {
-	return &Negotiation{""}
+func init() {
+	telnet.Register(Code,
+		func(c telnet.Command) telnet.Negotiator { return New() })
 }
 
 func (n *Negotiation) Request() telnet.Command {

@@ -7,7 +7,10 @@ import (
 	"net"
 	"os"
 
-	"github.com/egonelbre/telnet/remote"
+	"github.com/egonelbre/telnet"
+
+	_ "github.com/egonelbre/telnet/opt/naws"
+	_ "github.com/egonelbre/telnet/opt/ttype"
 )
 
 func main() {
@@ -40,7 +43,7 @@ const greeting = `
 `
 
 func handleConnection(c net.Conn) {
-	r := remote.New(c)
+	r := telnet.NewConn(c)
 
 	r.Print(greeting)
 	r.Print("What's your nick? ")
