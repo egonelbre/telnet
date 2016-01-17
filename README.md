@@ -1,5 +1,8 @@
 Telnet implements basic support for telnet protocol.
 
+WARNING: This is a work in progress, so the API can change at any point.
+If you want stability, vendor it into your own repository.
+
 Example how to use:
 
 ``` go
